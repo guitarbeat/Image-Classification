@@ -23,7 +23,8 @@ def install_packages():
     """
     packages = [
         'opencv-python', 'numpy', 'pandas', 'matplotlib', 'protobuf', 
-        'seaborn', 'scikit-learn', 'openpyxl', 'tensorflow<2.11'
+        'seaborn', 'scikit-learn', 'openpyxl', 'tensorflow<2.11',
+        'pydot',
     ]
     for package in packages:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
