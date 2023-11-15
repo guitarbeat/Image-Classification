@@ -29,15 +29,23 @@ def install_packages():
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 def check_tensorflow_gpu_support():
-    """Check TensorFlow GPU support and configure GPU memory growth."""
+    """Check TensorFlow GPU support and configure GPU memory growth and mixed precision."""
     try:
-        if tf.__version__ < '2.11':
-            gpus = tf.config.experimental.list_physical_devices('GPU')
+        gpus = tf.config.list_physical_devices('GPU')
+        if gpus:
             for gpu in gpus:
                 tf.config.experimental.set_memory_growth(gpu, True)
             print("GPU support is configured for TensorFlow.")
+            
+            # Check for GPU compute capability for mixed precision
+            if any(gpu.device_type == 'GPU' and gpu.compute_capability >= 7.0 for gpu in gpus):
+                policy = tf.keras.mixed_precision.Policy('mixed_float16')
+                tf.keras.mixed_precision.set_global_policy(policy)
+                print("Mixed precision policy set to 'mixed_float16'.")
+            else:
+                print("Warning: Mixed precision may run slowly as GPU compute capability is less than 7.0.")
         else:
-            print("Warning: TensorFlow version above 2.10 is not compatible with GPU on native Windows installations.")
+            print("No GPU detected. Mixed precision will not be enabled.")
     except Exception as e:
         print(f"Error configuring TensorFlow GPU support: {e}")
 
