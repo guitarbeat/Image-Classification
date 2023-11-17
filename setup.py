@@ -1,33 +1,31 @@
-# setup.py
+### System Setup and Optimization for TensorFlow
 
 import os
 import sys
 import subprocess
 import platform
 import tensorflow as tf
+import pkg_resources
 
-
-
-def install_packages():
-    """
-    Install required packages using pip.
+def is_package_installed(package_name):
+    """Check if a package is already installed."""
+    try:
+        pkg_resources.get_distribution(package_name)
+        return True
+    except pkg_resources.DistributionNotFound:
+        return False
     
-    These packages are commonly used for data handling, machine learning, and visualization.
-    opencv-python: For image processing tasks.
-    numpy: Fundamental package for scientific computing with Python.
-    pandas: Data analysis and manipulation tool.
-    matplotlib: Plotting library for Python.
-    seaborn: Statistical data visualization based on matplotlib.
-    scikit-learn: Machine learning library.
-    openpyxl: A Python library to read/write Excel 2010 xlsx/xlsm files.
-    """
+def install_packages():
+    """Install required packages if not already installed."""
     packages = [
         'opencv-python', 'numpy', 'pandas', 'matplotlib', 'protobuf', 
         'seaborn', 'scikit-learn', 'openpyxl', 'tensorflow<2.11',
-        'pydot',
+        'pydot', 'pydotplus', 'graphviz', 'scipy', 'keras', 'keras-core',
+        'jax', 'jaxlib', 'jax[cpu]','tensorboard','jinja2','protobuf',
     ]
     for package in packages:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        if not is_package_installed(package):
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 def check_tensorflow_gpu_support():
     """Check TensorFlow GPU support and configure GPU memory growth and mixed precision."""
@@ -39,7 +37,8 @@ def check_tensorflow_gpu_support():
             print("GPU support is configured for TensorFlow.")
             
             # Check for GPU compute capability for mixed precision
-            if any(gpu.device_type == 'GPU' and gpu.compute_capability >= 7.0 for gpu in gpus):
+            if any(gpu.device_type == 'GPU' for gpu in gpus):
+                #  and gpu.compute_capability >= 7.0
                 policy = tf.keras.mixed_precision.Policy('mixed_float16')
                 tf.keras.mixed_precision.set_global_policy(policy)
                 print("Mixed precision policy set to 'mixed_float16'.")
@@ -50,21 +49,16 @@ def check_tensorflow_gpu_support():
     except Exception as e:
         print(f"Error configuring TensorFlow GPU support: {e}")
 
-def get_system_info():
-    """Get system and TensorFlow information."""
-    return {
+def print_system_info():
+    """Print system and TensorFlow information."""
+    system_info = {
         "Platform": platform.platform(),
         "Python Version": platform.python_version(),
         "TensorFlow Version": tf.__version__,
         "Num GPUs Available": len(tf.config.list_physical_devices('GPU')),
     }
-
-def print_system_info():
-    """Print system information."""
-    system_info = get_system_info()
     formatted_info = "\n".join(f"{key}: {value}" for key, value in system_info.items())
     print(formatted_info)
-
 
 
 def setup():
